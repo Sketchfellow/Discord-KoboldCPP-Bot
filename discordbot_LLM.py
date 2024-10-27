@@ -12,11 +12,18 @@ from enum import Enum
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Supported prompt formats
 class PromptFormat(str, Enum):
     CHATML = "chatml"
     LLAMA = "llama"
     VICUNA = "vicuna"
     GEMMA = "gemma"
+    ALPACA = "alpaca"
+    COMMAND_R = "command-r"
+    PHI3 = "phi3"
+    MISTRAL = "mistral"
+    LLAMA3 = "llama3"
+    GEMMA2 = "gemma2"
 
 
 # Global Configuration
@@ -48,7 +55,6 @@ class PromptFormatter:
         for msg in messages:
             role = "assistant" if msg.is_bot else "user"
             clean_content = msg.content
-            # necessary to prevent positive feedback loop of llm repeating its name 
             if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
                 clean_content = clean_content[len(f"{msg.author_name}: "):]
             prompt += f"<|im_start|>{role}\n{msg.author_name}: {clean_content}<|im_end|>\n"
@@ -69,7 +75,7 @@ class PromptFormatter:
 
     @staticmethod
     def format_vicuna(messages: List[Message], system_prompt: str) -> str:
-        prompt = f"SYSTEM: {system_prompt}\n"
+        prompt = f"{system_prompt}\n\n"
         for msg in messages:
             role = "ASSISTANT" if msg.is_bot else "USER"
             clean_content = msg.content
@@ -91,6 +97,82 @@ class PromptFormatter:
         prompt += "<start_of_turn>model\n"
         return prompt
 
+    @staticmethod
+    def format_alpaca(messages: List[Message], system_prompt: str) -> str:
+        prompt = f"{system_prompt}\n\n"
+        for msg in messages:
+            clean_content = msg.content
+            if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
+                clean_content = clean_content[len(f"{msg.author_name}: "):]
+            if msg.is_bot:
+                prompt += f"### Response:\n{msg.author_name}: {clean_content}</s>\n\n"
+            else:
+                prompt += f"### Instruction:\n{msg.author_name}: {clean_content}\n\n"
+        prompt += "### Response:\n"
+        return prompt
+
+    @staticmethod
+    def format_command_r(messages: List[Message], system_prompt: str) -> str:
+        prompt = f"<|START_OF_TURN_TOKEN|><|SYSTEM_TOKEN|>{system_prompt}<|END_OF_TURN_TOKEN|>"
+        for msg in messages:
+            token = "<|CHATBOT_TOKEN|>" if msg.is_bot else "<|USER_TOKEN|>"
+            clean_content = msg.content
+            if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
+                clean_content = clean_content[len(f"{msg.author_name}: "):]
+            prompt += f"<|START_OF_TURN_TOKEN|>{token}{msg.author_name}: {clean_content}<|END_OF_TURN_TOKEN|>"
+        prompt += "<|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+        return prompt
+
+    @staticmethod
+    def format_phi3(messages: List[Message], system_prompt: str) -> str:
+        prompt = f"<|system|>\n{system_prompt}<|end|>\n"
+        for msg in messages:
+            role = "assistant" if msg.is_bot else "user"
+            clean_content = msg.content
+            if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
+                clean_content = clean_content[len(f"{msg.author_name}: "):]
+            prompt += f"<|{role}|>\n{msg.author_name}: {clean_content}<|end|>\n"
+        prompt += "<|assistant|>\n"
+        return prompt
+
+    @staticmethod
+    def format_mistral(messages: List[Message], system_prompt: str) -> str:
+        prompt = f"{system_prompt}"
+        for msg in messages:
+            clean_content = msg.content
+            if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
+                clean_content = clean_content[len(f"{msg.author_name}: "):]
+            if msg.is_bot:
+                prompt += f"[/INST]{msg.author_name}: {clean_content}</s>"
+            else:
+                prompt += f"[INST]{msg.author_name}: {clean_content}"
+        prompt += "[/INST]"
+        return prompt
+
+    @staticmethod
+    def format_llama3(messages: List[Message], system_prompt: str) -> str:
+        prompt = f"<|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|>"
+        for msg in messages:
+            role = "assistant" if msg.is_bot else "user"
+            clean_content = msg.content
+            if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
+                clean_content = clean_content[len(f"{msg.author_name}: "):]
+            prompt += f"<|start_header_id|>{role}<|end_header_id|>\n\n{msg.author_name}: {clean_content}<|eot_id|>"
+        prompt += "<|start_header_id|>assistant<|end_header_id|>\n\n"
+        return prompt
+
+    @staticmethod
+    def format_gemma2(messages: List[Message], system_prompt: str) -> str:
+        prompt = f"<start_of_turn>system\n{system_prompt}<end_of_turn>\n"
+        for msg in messages:
+            role = "model" if msg.is_bot else "user"
+            clean_content = msg.content
+            if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
+                clean_content = clean_content[len(f"{msg.author_name}: "):]
+            prompt += f"<start_of_turn>{role}\n{msg.author_name}: {clean_content}<end_of_turn>\n"
+        prompt += "<start_of_turn>model\n"
+        return prompt
+
 class ConversationManager:
     def __init__(self):
         self.max_tokens = BOT_CONFIG["MAX_TOKENS"]
@@ -99,7 +181,12 @@ class ConversationManager:
         
     def estimate_tokens(self, text: str) -> int:
         """Rough token estimation"""
-        return len(text.split()) * 1.3
+        # Count words
+        words = len(text.split())
+        # Count special characters and punctuation
+        special_chars = sum(not c.isalnum() and not c.isspace() for c in text)
+        # Account for tokenization of special characters and word pieces
+        return int(words * 1.5 + special_chars)
     
     def cleanup_old_conversations(self):
         """Remove conversations older than threshold"""
@@ -169,15 +256,24 @@ class LLMClient:
             PromptFormat.LLAMA: PromptFormatter.format_llama,
             PromptFormat.VICUNA: PromptFormatter.format_vicuna,
             PromptFormat.GEMMA: PromptFormatter.format_gemma,
+            PromptFormat.ALPACA: PromptFormatter.format_alpaca,
+            PromptFormat.COMMAND_R: PromptFormatter.format_command_r,
+            PromptFormat.PHI3: PromptFormatter.format_phi3,
+            PromptFormat.MISTRAL: PromptFormatter.format_mistral,
+            PromptFormat.LLAMA3: PromptFormatter.format_llama3,
+            PromptFormat.GEMMA2: PromptFormatter.format_gemma2
         }
+    
+        if self.prompt_format not in formatter_map:
+            logger.warning(f"Unsupported prompt format {self.prompt_format}, falling back to CHATML")
+            return PromptFormatter.format_chatml(messages, system_prompt)
+            
         return formatter_map[self.prompt_format](messages, system_prompt)
 
     def format_simple_prompt(self, prompt: str) -> str:
         system_prompt = self.build_system_prompt(False)
-        return PromptFormatter.format_chatml(
-            [Message(prompt, "user", datetime.now(), False)],
-            system_prompt
-        )
+        messages = [Message(prompt, "user", datetime.now(), False)]
+        return self.format_conversation(messages)
 
     def clean_response(self, response: str) -> str:
         """Clean up response based on prompt format"""
@@ -185,7 +281,13 @@ class LLMClient:
             PromptFormat.CHATML: "<|im_end|>",
             PromptFormat.LLAMA: "<|eot_id|>",
             PromptFormat.VICUNA: "</s>",
-            PromptFormat.GEMMA: "<end_of_turn>"
+            PromptFormat.GEMMA: "<end_of_turn>",
+            PromptFormat.ALPACA: "</s>",
+            PromptFormat.COMMAND_R: "<|END_OF_TURN_TOKEN|>",
+            PromptFormat.PHI3: "<|end|>",
+            PromptFormat.MISTRAL: "</s>",
+            PromptFormat.LLAMA3: "<|eot_id|>",
+            PromptFormat.GEMMA2: "<end_of_turn>"
         }
         
         pattern = cleanup_patterns.get(self.prompt_format)
@@ -216,16 +318,28 @@ class LLMClient:
             response.raise_for_status()
             
             result = response.json()
-            generated_text = result["results"][0]["text"]
+            if not result.get("results"):
+                logger.error("Empty results in LLM response")
+                return "I received an invalid response. Please try again."
+                
+            generated_text = result["results"][0].get("text", "").strip()
+            if not generated_text:
+                logger.error("Empty text in LLM response")
+                return "I received an empty response. Please try again."
             
             # Clean up response based on format
             generated_text = self.clean_response(generated_text)
                 
             # Ensure response length is within Discord limits
             if len(generated_text) > 1900:
-                generated_text = generated_text[:1900] + "..."
+                # Find the last complete sentence before the cutoff
+                last_period = generated_text[:1900].rfind('.')
+                if last_period > 0:
+                    generated_text = generated_text[:last_period + 1] + "..."
+                else:
+                    generated_text = generated_text[:1900] + "..."
                 
-            return generated_text.strip()
+            return generated_text
             
         except requests.exceptions.Timeout:
             logger.error("LLM request timed out")
