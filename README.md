@@ -58,7 +58,7 @@ Once the bot is running, you can use the following commands in your Discord serv
 * **`!chat [your message]`:**  Starts or continues a conversation with the LLM.
 * **`!ask [your question]`:** Asks the LLM a direct question without maintaining conversation history.
 
-Note: This bot script is not meant for large-scale deployments.
+Note: This bot script is **not** meant for large-scale deployments.
 
 ## Example
 
