@@ -14,6 +14,7 @@ Simple Python script to connect a local model running on KoboldCPP's API to a di
     - Copy the generate URL and add the bot to your server
 * Download the Python script in this directory and save it in a directory.
 * The directory should also contain the file with your saved bot token.
+* Run your LLM of choice using KoboldCPP. You may have to modify the prompt format in the Python script at the top in the global configuration settings. 
 * Make sure you have Python installed as well as any of the libraries in the script using ```pip install```
 * Go to the termial and use the command ```python discordbot_LLM.py < token.in''' where token.in is your saved Bot token.
 * The bot should be working and will respond to the commands ```!ask``` and ```!chat```.
