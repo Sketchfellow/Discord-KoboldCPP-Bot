@@ -15,9 +15,7 @@ logger = logging.getLogger(__name__)
 # Supported prompt formats
 class PromptFormat(str, Enum):
     CHATML = "chatml"
-    LLAMA = "llama"
     VICUNA = "vicuna"
-    GEMMA = "gemma"
     ALPACA = "alpaca"
     COMMAND_R = "command-r"
     PHI3 = "phi3"
@@ -62,18 +60,6 @@ class PromptFormatter:
         return prompt
 
     @staticmethod
-    def format_llama(messages: List[Message], system_prompt: str) -> str:
-        prompt = f"<|start_header_id|>system<|end_header_id|>\n\n{system_prompt}<|eot_id|>"
-        for msg in messages:
-            role = "assistant" if msg.is_bot else "user"
-            clean_content = msg.content
-            if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
-                clean_content = clean_content[len(f"{msg.author_name}: "):]
-            prompt += f"<|start_header_id|>{role}<|end_header_id|>\n\n{msg.author_name}: {clean_content}<|eot_id|>"
-        prompt += "<|start_header_id|>assistant<|end_header_id|>\n\n"
-        return prompt
-
-    @staticmethod
     def format_vicuna(messages: List[Message], system_prompt: str) -> str:
         prompt = f"{system_prompt}\n\n"
         for msg in messages:
@@ -83,18 +69,6 @@ class PromptFormatter:
                 clean_content = clean_content[len(f"{msg.author_name}: "):]
             prompt += f"{role}: {msg.author_name}: {clean_content}</s>\n"
         prompt += "ASSISTANT:"
-        return prompt
-
-    @staticmethod
-    def format_gemma(messages: List[Message], system_prompt: str) -> str:
-        prompt = f"<start_of_turn>system\n{system_prompt}<end_of_turn>\n"
-        for msg in messages:
-            role = "model" if msg.is_bot else "user"
-            clean_content = msg.content
-            if msg.is_bot and clean_content.startswith(f"{msg.author_name}: "):
-                clean_content = clean_content[len(f"{msg.author_name}: "):]
-            prompt += f"<start_of_turn>{role}\n{msg.author_name}: {clean_content}<end_of_turn>\n"
-        prompt += "<start_of_turn>model\n"
         return prompt
 
     @staticmethod
@@ -253,9 +227,7 @@ class LLMClient:
         system_prompt = self.build_system_prompt(True)
         formatter_map = {
             PromptFormat.CHATML: PromptFormatter.format_chatml,
-            PromptFormat.LLAMA: PromptFormatter.format_llama,
             PromptFormat.VICUNA: PromptFormatter.format_vicuna,
-            PromptFormat.GEMMA: PromptFormatter.format_gemma,
             PromptFormat.ALPACA: PromptFormatter.format_alpaca,
             PromptFormat.COMMAND_R: PromptFormatter.format_command_r,
             PromptFormat.PHI3: PromptFormatter.format_phi3,
@@ -279,9 +251,7 @@ class LLMClient:
         """Clean up response based on prompt format"""
         cleanup_patterns = {
             PromptFormat.CHATML: "<|im_end|>",
-            PromptFormat.LLAMA: "<|eot_id|>",
             PromptFormat.VICUNA: "</s>",
-            PromptFormat.GEMMA: "<end_of_turn>",
             PromptFormat.ALPACA: "</s>",
             PromptFormat.COMMAND_R: "<|END_OF_TURN_TOKEN|>",
             PromptFormat.PHI3: "<|end|>",
