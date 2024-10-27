@@ -3,7 +3,7 @@ Simple Python script to connect a local model running on KoboldCPP's API to a di
 
 ## Steps:
 * Go to the Discord developer portal and create an application. Name it anything you want.
-* Under "Bot", create a bot token and save it into a file. You will pass it into the Python script. I will refer to it in the guide token.in
+* Under "Bot" create a bot token and save it into a file. You will pass it into the Python script. I will refer to it in this guide as "token.in".
 *  Enable the following in the Bot settings:
     - Presence Intent
     - Server Members Intent
