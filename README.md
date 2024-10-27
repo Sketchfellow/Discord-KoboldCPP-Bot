@@ -9,7 +9,7 @@ This Python script connects a local Large Language Model (LLM) running on Kobold
 * **Simple Q&A:** Use the `!ask` command for direct questions to the LLM without retaining conversation history.  Ideal for quick queries.
 * **Customizable:** Configure various parameters like maximum tokens, message history length, cooldown period, and prompt format to suit your needs.
 * **KoboldCPP Integration:** Designed to work seamlessly with KoboldCPP's API, allowing you to leverage locally hosted LLMs.
-* **Multiple Prompt Formats:** Supports various prompt formats including ChatML, Llama, Vicuna, and Gemma. 
+* **Multiple Prompt Formats:** Supports various prompt formats including ChatML, Llama, Vicuna, Mistral, Gemma, and more. 
 * **Automatic Cleanup:**  Periodically removes old conversation histories to manage memory usage.
 * **Error Handling:**  Includes robust error handling to manage issues like network timeouts, API errors, and invalid responses.
 
@@ -58,6 +58,7 @@ Once the bot is running, you can use the following commands in your Discord serv
 * **`!chat [your message]`:**  Starts or continues a conversation with the LLM.
 * **`!ask [your question]`:** Asks the LLM a direct question without maintaining conversation history.
 
+Note: This bot script is not meant for large-scale deployments.
 
 ## Example
 
