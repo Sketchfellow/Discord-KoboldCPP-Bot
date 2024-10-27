@@ -18,7 +18,7 @@ This Python script connects a local Large Language Model (LLM) running on Kobold
 * **Python 3.x:** Ensure you have Python 3 installed on your system.
 * **Required Libraries:** Install the necessary Python libraries using pip:
   ```bash
-  pip install discord.py requests
+  pip install discord
   ```
 * **KoboldCPP:** Set up and run KoboldCPP with your desired LLM.
 * **Discord Bot Token:** Create a Discord bot and obtain its token (see setup instructions below).
