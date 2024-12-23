@@ -25,13 +25,14 @@ class PromptFormat(str, Enum):
 
 
 # Global Configuration
+# System prompts can also be changed in the build_system_prompt() function
 BOT_CONFIG = {
-    "MAX_TOKENS": 2048,
-    "MAX_MESSAGES": 10,
+    "MAX_TOKENS": 2048, # Context window
+    "MAX_MESSAGES": 10, # Max discord messages to be included in context window
     "COOLDOWN_SECONDS": 2,
     "CLEANUP_MINUTES": 30,
-    "LLM_ENDPOINT": "http://localhost:5001/api/v1/generate",
-    "CHAT_MAX_LENGTH": 800,
+    "LLM_ENDPOINT": "http://localhost:5001/api/v1/generate", # Could be different, especially if you are using remote tunneling.
+    "CHAT_MAX_LENGTH": 800, # in tokens
     "ASK_MAX_LENGTH": 1000,
     "CHAT_TEMPERATURE": 0.75,
     "ASK_TEMPERATURE": 0.5,
@@ -223,8 +224,8 @@ class LLMClient:
                      - Format code blocks with appropriate language tags
                      - Be concise but thorough"""
 
-    def format_conversation(self, messages: List[Message]) -> str:
-        system_prompt = self.build_system_prompt(True)
+    def format_conversation(self, messages: List[Message], chat = True) -> str:
+        system_prompt = self.build_system_prompt(is_chat = chat)
         formatter_map = {
             PromptFormat.CHATML: PromptFormatter.format_chatml,
             PromptFormat.VICUNA: PromptFormatter.format_vicuna,
@@ -243,9 +244,8 @@ class LLMClient:
         return formatter_map[self.prompt_format](messages, system_prompt)
 
     def format_simple_prompt(self, prompt: str) -> str:
-        system_prompt = self.build_system_prompt(False)
         messages = [Message(prompt, "user", datetime.now(), False)]
-        return self.format_conversation(messages)
+        return self.format_conversation(messages = messages, chat = False)
 
     def clean_response(self, response: str) -> str:
         """Clean up response based on prompt format"""
@@ -385,7 +385,7 @@ class EnhancedChatBot(discord.Client):
                 context = self.conversation_manager.get_conversation_context(message.channel.id)
                 
                 # Get LLM response
-                formatted_prompt = self.llm_client.format_conversation(context)
+                formatted_prompt = self.llm_client.format_conversation(messages = context, chat = True )
                 response_text = await self.llm_client.get_response(formatted_prompt, is_chat=True)
                 
                 if response_text:
