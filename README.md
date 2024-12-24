@@ -8,7 +8,7 @@ This Python script connects a local Large Language Model (LLM) running on Kobold
 * **Interactive Chat:** Use the `!chat` command to engage in a conversation with the LLM. The bot maintains context and remembers previous messages within a defined limit.
 * **Simple Q&A:** Use the `!ask` command for direct questions to the LLM without retaining conversation history.  Ideal for quick queries.
 * **Customizable:** Configure various parameters like maximum tokens, message history length, cooldown period, and prompt format to suit your needs.
-* **KoboldCPP Integration:** Designed to work seamlessly with KoboldCPP's API, allowing you to leverage locally hosted LLMs.
+* **KoboldCpp Integration:** Designed to work seamlessly with KoboldCpp's API, allowing you to leverage locally hosted LLMs.
 * **Multiple Prompt Formats:** Supports various prompt formats including ChatML, Llama, Vicuna, Mistral, Gemma, and more. 
 * **Automatic Cleanup:**  Periodically removes old conversation histories to manage memory usage.
 * **Error Handling:**  Includes robust error handling to manage issues like network timeouts, API errors, and invalid responses.
@@ -20,7 +20,7 @@ This Python script connects a local Large Language Model (LLM) running on Kobold
   ```bash
   pip install discord
   ```
-* **KoboldCPP:** Set up and run KoboldCPP with your desired LLM.
+* **KoboldCpp:** Download KoboldCpp along with your desired LLM.
 * **Discord Bot Token:** Create a Discord bot and obtain its token (see setup instructions below).
 
 ## Setup
@@ -75,7 +75,8 @@ Note: This bot script is **not** meant for large-scale deployments.
 
 ## Troubleshooting
 
-* **Bot Not Responding:** Verify that KoboldCPP is running correctly and that the API endpoint in the `BOT_CONFIG` is accurate.  Check the console for any error messages.
+* **Bot Not Responding:** Verify that KoboldCpp is running correctly and that the API endpoint in the `BOT_CONFIG` is accurate.  Check the console for any error messages.
 * **Rate Limiting:** If you're sending messages too frequently, you might encounter rate limits. Adjust the `COOLDOWN_SECONDS` in the `BOT_CONFIG` to increase the delay between commands.
-* **Token Issues:** Make sure you are using the correct bot token and that it has the necessary permissions.
+* **Token Issues:** Make sure you are using the correct bot token and that it has the necessary permissions. The bot token is not the application ID.
+* **Bot Responses Incoherent:** Make sure you are using the correct prompt format. Check the model card of the LLM you downloaded to make sure you are using the right format. Also make sure the context window is within the LLM's stated limits.
 
