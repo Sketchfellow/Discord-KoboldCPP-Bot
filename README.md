@@ -1,7 +1,7 @@
 
-# Discord-KoboldCPP-Bot
+# Discord-KoboldCpp-Bot
 
-This Python script connects a local Large Language Model (LLM) running on KoboldCPP's API to a Discord bot, enabling interactive conversations and Q&A within your Discord server.
+This Python script connects a local Large Language Model (LLM) running on KoboldCpp's API to a Discord bot, enabling interactive conversations and Q&A within your Discord server.
 
 ## Features
 
@@ -15,7 +15,7 @@ This Python script connects a local Large Language Model (LLM) running on Kobold
 
 ## Prerequisites
 
-* **Python 3.x:** Ensure you have Python 3 installed on your system.
+* **Python 3.X:** Ensure you have Python 3 installed on your system.
 * **Required Libraries:** Install the necessary Python libraries using pip:
   ```bash
   pip install discord
@@ -50,6 +50,10 @@ This Python script connects a local Large Language Model (LLM) running on Kobold
      ```bash
      python discordbot_LLM.py < token.txt 
      ```
+7. **Start KoboldCpp:**
+   - Run KoboldCpp, with your desired model, either through the terminal or the built-in GUI.
+   - Wait for the model to load and the API endpoints to be set.
+6. **You are now ready to chat with the LLM on Discord!**
 
 ## Usage
 
